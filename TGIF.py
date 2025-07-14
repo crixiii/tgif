@@ -9,7 +9,7 @@ import os
 
 
 
-def nice_plots():
+def nice_plots(change=True):
     plt.rc('font', family='serif')
     fig_width_pt = 244.0
     text_width_pt = 508.0
@@ -40,7 +40,7 @@ class tgif:
     - 
     """
     def __init__(self, trobj=None, mjd=None, time_window = 5000, size=90,
-                 detection_list = None, objid=None, ra=None, dec=None, filepath=None):
+                 detection_list = None, objid=None, ra=None, dec=None, filepath=None, filename=None):
         
         if trobj == None:
             print('-- no tessreduce object given! --')
@@ -58,7 +58,7 @@ class tgif:
         self.detected_inds = np.where(((self.trobj.lc[0] >= (self.mjd - to_days(self.time_window)))) & 
                                       (self.trobj.lc[0] <=  (self.mjd + to_days(self.time_window))))[0]
         
-        
+        self.filename = filename
         self.filepath = filepath
         if self.filepath is None:
             self.filepath = os.getcwd()
@@ -71,9 +71,9 @@ class tgif:
         self.event_info = self.detection_list[self.detection_list['objid']==self.objid]
         
         
-    def make_gif(self, vmin=0, vmax=20, fig_size=(4, 4), side_frames=5):
+    def make_gif(self, vmin=0, vmax=20, fig_size=(4, 4), side_frames=5, save=False):
         start_idx = self.detected_inds[0] - side_frames      
-        n_frames = self.detected_inds_inds + side_frames        
+        n_frames = len(self.detected_inds) + side_frames        
         
 
         fig, ax = plt.subplots(figsize=fig_size)
@@ -89,7 +89,9 @@ class tgif:
             return [im, title]
 
         ani = animation.FuncAnimation(fig, update, frames=n_frames, interval=300, blit=True)
+        if save:
+            file_name= self.filename
+            ani.save(f"{self.filepath}/{file_name}.gif", writer="pillow", dpi=100)
+            print(f'saved to {self.filepath}/{file_name}.gif')
+            plt.close()
 
-        file_name= self.filename
-        ani.save(f"{self.filepath}/{file_name}.gif", writer="pillow", dpi=100)
-        plt.close()
