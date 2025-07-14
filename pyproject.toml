@@ -1,0 +1,8 @@
+[project]
+name = "TGIF"
+version = "0.0.1"
+authors = [
+  { name="Clarinda Montilla", email="montillaclarinda@gmail.com" },
+]
+license = "MIT"
+license-files = ["LICEN[CS]E*"]
