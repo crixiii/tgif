@@ -33,19 +33,31 @@ def mag(flux, zeropoint=20.44):
 
 class tgif:
     """
-    TGIF : T(ESS) GIF :)
+    TGIF = T(ESS) GIF (^:
     Uses a tessreduce object to create a small gif or mp4 of your region of interest!
     to-do:
     - implement working on ozstar
-    - 
+    - make mp4 function work again
+    - make this file prettier :)
+    - would be pretty handy to have lightcurve option next to gif like in tesstransient with the little window moving along the lc
+    - make it do tessreduce if no trobj exists
+    - make multiple gifs/vids for an obs_list
     """
     def __init__(self, trobj=None, mjd=None, time_window = 5000, size=90,
                  detection_list = None, objid=None, ra=None, dec=None, filepath=None, filename=None):
-        
+        """
+        trobj: TESSreduce object.
+        mjd: time of the event of interest
+        time_window: the time in seconds to search before and after the specified MJD
+        size: size of the TESSreduce cutout (not currently used)
+        filepath: file path where gif/mp4 is saves
+        filename: name of the gif/mp4
+        """
         if trobj == None:
             print('-- no tessreduce object given! --')
         else:
             self.trobj = trobj
+
         self.mjd = mjd
         self.time_window = time_window # in seconds
         self.detection_list = None
@@ -54,7 +66,10 @@ class tgif:
         self.size = size
         self.ra = ra
         self.dec = dec
+        self.detection_list = detection_list
+        self.objid = objid
         self.detection_list = None
+        
         self.detected_inds = np.where(((self.trobj.lc[0] >= (self.mjd - to_days(self.time_window)))) & 
                                       (self.trobj.lc[0] <=  (self.mjd + to_days(self.time_window))))[0]
         
