@@ -43,6 +43,7 @@ class tgif:
     - make it do tessreduce if no trobj exists
     - make multiple gifs/vids for an obs_list
     """
+    
     def __init__(self, trobj=None, mjd=None, time_window = 5000, size=90,
                  detection_list = None, objid=None, ra=None, dec=None, filepath=None, filename=None):
         """
@@ -69,7 +70,7 @@ class tgif:
         self.detection_list = detection_list
         self.objid = objid
         self.detection_list = None
-        
+
         self.detected_inds = np.where(((self.trobj.lc[0] >= (self.mjd - to_days(self.time_window)))) & 
                                       (self.trobj.lc[0] <=  (self.mjd + to_days(self.time_window))))[0]
         
@@ -86,27 +87,55 @@ class tgif:
         self.event_info = self.detection_list[self.detection_list['objid']==self.objid]
         
         
-    def make_gif(self, vmin=0, vmax=20, fig_size=(4, 4), side_frames=5, save=False):
+    def make_gif(self, vmin=0, vmax=20, fig_size=(4, 4), side_frames=5, save=False, mp4=False, dpi=600, cmap="viridis", transparent=True):
         start_idx = self.detected_inds[0] - side_frames      
         n_frames = len(self.detected_inds) + side_frames        
         
 
         fig, ax = plt.subplots(figsize=fig_size)
+        if transparent:
+            fig.patch.set_alpha(0)     # Transparent outside frame
+            ax.set_facecolor("none")   # Transparent plot background
 
-        im = ax.imshow(self.trobj.flux[start_idx], vmin=vmin, vmax=vmax, origin='lower', cmap='viridis')
-        title = ax.set_title(f"frame {start_idx}")
+
+        im = ax.imshow(self.trobj.flux[start_idx], vmin=vmin, vmax=vmax, origin='lower', cmap=cmap)
+        # title = ax.set_title(f"frame {start_idx}")
         ax.axis('off')
 
         def update(frame):
             idx = start_idx + frame
             im.set_array(self.trobj.flux[idx])
-            title.set_text(f"frame {idx}")
-            return [im, title]
+            # title.set_text(f"frame {idx}")
+            return [im]
 
         ani = animation.FuncAnimation(fig, update, frames=n_frames, interval=300, blit=True)
+
         if save:
             file_name= self.filename
-            ani.save(f"{self.filepath}/{file_name}.gif", writer="pillow", dpi=100)
+            ani.save(f"{self.filepath}/{file_name}.gif", writer="pillow", dpi=dpi)
             print(f'saved to {self.filepath}/{file_name}.gif')
             plt.close()
+
+
+    def make_mp4(self, vmin=0, vmax=20, fig_size=(4, 4), origin='lower', cmap="viridis", dpi=300, interval=10, save=True):
+        fig, ax = plt.subplots(figsize=fig_size)
+        flux= self.trobj.flux
+        im = ax.imshow(flux[0], origin="lower", cmap=cmap, vmin=vmin, vmax=vmax)
+        title = ax.set_title("frame 0")
+
+        def update(ind):
+            im.set_array(flux[ind])
+            title.set_text(f"frame {ind}")
+            return im, title
+
+        ani = animation.FuncAnimation(fig, update, frames=len(flux), interval=interval, blit=False)
+
+        plt.show()
+        if save:
+            file_name= self.filename
+            ani.save(f"{self.filepath}/{file_name}.gif", writer="pillow", dpi=dpi)
+            print(f'saved to {self.filepath}/{file_name}.gif')
+            plt.close()
+
+
 
