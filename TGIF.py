@@ -54,13 +54,7 @@ class tgif:
         filepath: file path where gif/mp4 is saves
         filename: name of the gif/mp4
         """
-        if trobj == None:
-            print('-- no tessreduce object given! --')
-        else:
-            self.trobj = trobj
-            self.detected_inds = np.where(((self.trobj.lc[0] >= (self.mjd - to_days(self.time_window)))) & 
-                                      (self.trobj.lc[0] <=  (self.mjd + to_days(self.time_window))))[0]
-        
+
 
         if flux is not None:
             self.flux=flux
@@ -69,7 +63,7 @@ class tgif:
 
             
 
-        self.mjd = mjd
+        
         self.time_window = time_window # in seconds
         self.detection_list = None
         self.objid = None
@@ -81,6 +75,13 @@ class tgif:
         self.objid = objid
         self.detection_list = None
 
+        if trobj == None:
+            print('-- no tessreduce object given! --')
+        else:
+            self.trobj = trobj
+            self.detected_inds = np.where(((self.trobj.lc[0] >= (self.mjd - to_days(self.time_window)))) & 
+                                      (self.trobj.lc[0] <=  (self.mjd + to_days(self.time_window))))[0]
+        
         
         self.filename = filename
         self.filepath = filepath
@@ -96,13 +97,19 @@ class tgif:
 
     
         
-    def make_frames(self,frames, vmin=0, vmax=20, fig_size=(4, 4),save_gif=False,save_mp4=False, dpi=100,interval=100, cmap="viridis"):
+    def make_frames(self,frames, vmin=0, vmax=20, fig_size=(4, 4),save_gif=False,save_mp4=False, dpi=100,interval=100, cmap="viridis", xlims=None, ylims=None):
         """
+        make sure ffmpeg is installed properly or else mp4s will fail!
         """
         fig, ax = plt.subplots(figsize=fig_size)
         im = ax.imshow(self.flux[frames[0]], vmin=vmin, vmax=vmax, origin='lower', cmap=cmap)
         title = ax.set_title(f"frame {frames[0]}")
         ax.axis('off')
+
+        if xlims is not None:
+            ax.set_xlim(xlims)
+        if ylims is not None:
+            ax.set_ylim(ylims)
 
         def update(ind):
             im.set_array(self.flux[ind])
